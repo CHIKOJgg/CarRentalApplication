@@ -1,0 +1,5 @@
+﻿  App.cpp
+C:\Users\Honor\source\repos\courseWorkVer0.09\courseWorkVer0.09\input_val.h(50,15): warning C4834: удаление возвращаемого значения функции с атрибутом [[nodiscard]]
+C:\Users\Honor\source\repos\courseWorkVer0.09\courseWorkVer0.09\input_val.h(67,15): warning C4834: удаление возвращаемого значения функции с атрибутом [[nodiscard]]
+C:\Users\Honor\source\repos\courseWorkVer0.09\courseWorkVer0.09\App.cpp(328,24): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+  courseWorkVer0.09.vcxproj -> C:\Users\Honor\source\repos\courseWorkVer0.09\courseWorkVer0.09\x64\Debug\courseWorkVer0.09.exe
