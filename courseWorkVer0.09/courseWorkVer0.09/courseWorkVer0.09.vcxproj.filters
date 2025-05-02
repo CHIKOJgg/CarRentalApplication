@@ -65,5 +65,8 @@
     <ClInclude Include="input_val.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="russianLang.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -18,22 +18,22 @@ using std::stoi;
 using std::stod;
 using std::string;
 
-// ======================== Валидация ключа (100 < key < 999)
-inline bool isValidKey(const string& input) {
-    if (input.length() != 3) return false;
-    for (char c : input) if (!isdigit(c)) return false;
-    try { int key = stoi(input); return (key > 100 && key < 999); }
-    catch (...) { return false; }
-}
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+#include <clocale>
+#include <clocale>
+#include <locale>
+#include <iostream>
 
-// ======================== Валидация username (не пустой, без пробелов)
+// username
 inline bool isValidUsername(const string& input) {
     if (input.empty()) return false;
     if (input.find(' ') != string::npos) return false;
     return true;
 }
 
-// ======================== Валидация char (1 символ)
+// char (1 символ)
 inline bool isValidChar(const string& input) {
     if (input.length() != 1) return false;
     char c = input[0];
@@ -41,7 +41,7 @@ inline bool isValidChar(const string& input) {
     return true;
 }
 
-// ======================== Валидация int
+//  int
 inline bool isValidInt(const string& input) {
     if (input.empty()) return false;
     size_t start = 0;
@@ -53,7 +53,7 @@ inline bool isValidInt(const string& input) {
 }
 
 
-// ======================== Валидация double
+//  double
 inline bool isValidDouble(const string& input) {
     if (input.empty()) return false;
     size_t start = 0; int dots = 0; bool hasDigits = false;
@@ -69,21 +69,21 @@ inline bool isValidDouble(const string& input) {
     return true;
 }
 
-// ======================== Валидация строки (не пустая, не только пробелы)
+// string
 inline bool isValidString(const string& input) {
     if (input.empty()) return false;
     for (char c : input) if (!isspace(c)) return true;
     return false;
 }
 
-// ======================== Валидация email
+// email
 inline bool isValidEmail(const string& input) {
     if (input.empty()) return false;
     const regex pattern(R"((^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$))");
     return regex_match(input, pattern);
 }
 
-// ======================== Валидация даты YYYY-MM-DD
+// YYYY-MM-DD
 inline bool isValidDate(const string& input) {
     const regex pattern(R"((\d{4})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]))");
     smatch m;
@@ -100,20 +100,12 @@ inline bool isValidAdultAge(const std::string& input) {
     return age > 18;
 }
 
-// ======================== Валидация шестнадцатеричного числа
-inline bool isValidHex(const string& input) {
-    if (input.empty()) return false;
-    size_t s = (input.size() > 2 && input[0] == '0' && (input[1] == 'x' || input[1] == 'X')) ? 2 : 0;
-    for (size_t i = s; i < input.size(); ++i) if (!isxdigit(input[i])) return false;
-    return true;
-}
-
-// ======================== Валиция bool (true/false)
+// bool 
 inline bool isValidBool(const string& input) {
     return input == "true" || input == "false";
 }
 
-// ======================== Валидация пароля (мин.8 символов, цифра, буква)
+// password
 inline bool isValidPassword(const string& input) {
     if (input.length() < 6) return false;
     bool d = false, l = false;
@@ -121,10 +113,11 @@ inline bool isValidPassword(const string& input) {
     return d && l;
 }
 
-// ======================== Шаблон для ввода с валидацией
+// Template
 template<typename T>
 T getValidatedInput(const string& prompt, bool(*validator)(const string&), T(*converter)(const string&)) {
     string in;
+
     while (true) {
         cout << prompt;
         getline(cin, in);
@@ -132,11 +125,11 @@ T getValidatedInput(const string& prompt, bool(*validator)(const string&), T(*co
             try { return converter(in); }
             catch (...) { cerr << "conversion error.\n"; }
         }
-        else cerr << "Incorrect input, try again.\n";
+        else cerr << "Incorrect input. Tru again.\n";
     }
 }
 
-// Конвертеры
+// Converts
 inline int convertToInt(const string& s) { return stoi(s); }
 inline double convertToDouble(const string& s) { return stod(s); }
 inline string convertToString(const string& s) { return s; }

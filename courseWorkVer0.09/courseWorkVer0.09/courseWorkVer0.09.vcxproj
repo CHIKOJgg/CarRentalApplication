@@ -142,6 +142,7 @@
     <ClInclude Include="App.h" />
     <ClInclude Include="InputChecker.h" />
     <ClInclude Include="input_val.h" />
+    <ClInclude Include="russianLang.h" />
     <ClInclude Include="SQlite\sqlite3.h" />
     <ClInclude Include="termcolor.hpp" />
     <ClInclude Include="Utilities.h" />
