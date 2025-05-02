@@ -1,4 +1,4 @@
-#include "App.h"
+п»ї#include "App.h"
 #include "DataStorage.h"
 #include "Utilities.h"
 #include "InputChecker.h"
@@ -12,65 +12,76 @@
 
 using namespace std;
 
-int showMenu(const std::string& title, const std::string options[],
-    int optionCount) {
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO originalCursorInfo;
-    GetConsoleCursorInfo(hConsole, &originalCursorInfo);
+#include <windows.h>
+#include <conio.h>
+#include <iostream>
+#include "termcolor.hpp"
 
-    CONSOLE_CURSOR_INFO cursorInfo = originalCursorInfo;
-    cursorInfo.bVisible = false;
-    SetConsoleCursorInfo(hConsole, &cursorInfo);
+#define GETCH() ([](){ int _c = _getch(); return _c; }())
+
+int showMenu(const std::string& title, const std::string options[], int optionCount) {
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD oldMode;
+    GetConsoleMode(hIn, &oldMode);
+    SetConsoleMode(hIn, oldMode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
+
+   
+    CONSOLE_CURSOR_INFO ci;
+    GetConsoleCursorInfo(hOut, &ci);
+    ci.bVisible = FALSE;
+    SetConsoleCursorInfo(hOut, &ci);
+
+    
     system("cls");
+    FlushConsoleInputBuffer(hIn);
+
+   
     std::cout << title << std::endl;
-    while (_kbhit()) _getch();
+
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(hConsole, &csbi);
-    SHORT menuStartY = csbi.dwCursorPosition.Y;
+    GetConsoleScreenBufferInfo(hOut, &csbi);
+    SHORT menuY = csbi.dwCursorPosition.Y;
+
     for (int i = 0; i < optionCount; ++i) {
-        if (i == 0) {
-            std::cout << termcolor::red << "--> " << termcolor::reset;
-        }
-        else {
-            std::cout << "    ";
-        }
-        std::cout << options[i] << std::endl;
+        if (i == 0) std::cout << termcolor::red << "--> " << termcolor::reset;
+        else     std::cout << "    ";
+        std::cout << options[i] << "\n";
     }
 
+    int choice = 0, prev = -1;
+    int consoleW = csbi.dwSize.X;
 
-
-    int choice = 0;
-    int previousChoice = 0;
-    GetConsoleScreenBufferInfo(hConsole, &csbi);
-    int consoleWidth = csbi.dwSize.X;
-    //  TODO paint console output
+    
     while (true) {
-        if (choice != previousChoice) {
-
-            SetConsoleCursorPosition(
-                hConsole, { 0, static_cast<SHORT>(menuStartY + previousChoice) });
-            std::cout << std::string(consoleWidth, ' ') << termcolor::grey << "\r    "
-                << termcolor::reset << options[previousChoice];
-
-            SetConsoleCursorPosition(
-                hConsole, { 0, static_cast<SHORT>(menuStartY + choice) });
-            std::cout << std::string(consoleWidth, ' ') << termcolor::red << "\r--> "
+        if (choice != prev) {
+            
+            if (prev >= 0) {
+                SetConsoleCursorPosition(hOut, { 0, SHORT(menuY + prev) });
+                std::cout << std::string(consoleW, ' ')
+                    << "\r    " << options[prev];
+            }
+          
+            SetConsoleCursorPosition(hOut, { 0, SHORT(menuY + choice) });
+            std::cout << std::string(consoleW, ' ')
+                << "\r" << termcolor::red << "--> "
                 << termcolor::reset << options[choice];
-
-            previousChoice = choice;
+            prev = choice;
         }
 
-        int key = _getch();
+        int key = GETCH();
         if (key == 224) {
-            key = _getch();
-            if (key == 72 && choice > 0)
-                choice--;
-            else if (key == 80 && choice < optionCount - 1)
-                choice++;
+            key = GETCH();
+            if (key == 72 && choice > 0)            choice--;
+            else if (key == 80 && choice < optionCount - 1) choice++;
         }
-        else if (key == 13) { // Enter
-            SetConsoleCursorInfo(hConsole, &originalCursorInfo);
-            while (_kbhit()) _getch();
+        else if (key == 13) {  // Enter
+           
+            FlushConsoleInputBuffer(hIn);
+            SetConsoleMode(hIn, oldMode);
+
+            ci.bVisible = TRUE;
+            SetConsoleCursorInfo(hOut, &ci);
             return choice;
         }
     }
@@ -96,8 +107,8 @@ App::App() {
 void App::run() {
     bool exitFlag = false;
     while (!exitFlag) {
-        const string menu[] = { "Регистрация", "Вход", "Выход" };
-        int choice = showMenu("Система аренды автомобилей", menu, 3);
+        const string menu[] = { "Р РµРіРёСЃС‚СЂР°С†РёСЏ", "Р’С…РѕРґ", "Р’С‹С…РѕРґ" };
+        int choice = showMenu("РЎРёСЃС‚РµРјР° Р°СЂРµРЅРґС‹ Р°РІС‚РѕРјРѕР±РёР»РµР№\nР”Р»СЏ РІС‹Р±РѕСЂР° РїСѓРЅС‚Р° 2 СЂР°Р·Р° РЅР°Р¶РјРёС‚Рµ Enter", menu, 3);
         switch (choice) {
         case 0: registerUser(); break;
         case 1: loginUser(); break;
@@ -113,32 +124,36 @@ void App::registerUser() {
     int age = 0;
     int exp = -1;
 
-    cout << "\n=== Регистрация ===\n";
+    cout << "\n=== Р РµРіРёСЃС‚СЂР°С†РёСЏ ===\n";
   
-    username = getValidatedInput<string>("Введите имя пользователя:", isValidString, convertToString);
+    username = getValidatedInput<string>("Р’РІРµРґРёС‚Рµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ:", isValidString, convertToString);
 
     if (DataStorage::getInstance().findUserByName(username)) {
-        cout << "Пользователь с таким именем уже существует!\n";
+        cout << "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СЃ С‚Р°РєРёРј РёРјРµРЅРµРј СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚!\n";
         system("pause");
         return;
     }
-    password = getValidatedInput<string>("Введите пароль (минимум 6 символов):", isValidPassword, convertToString);
+    password = getValidatedInput<string>("Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ (РјРёРЅРёРјСѓРј 6 СЃРёРјРІРѕР»РѕРІ РѕР±СЏР·Р°С‚РµР»СЊРЅРѕ РґРѕР»Р¶РЅР° РїСЂРёСЃСѓС‚СЃС‚РІРѕРІР°С‚СЊ Р±СѓРєРІР° Рё С†РёС„СЂР°):", isValidPassword, convertToString);
     
-    age = getValidatedInput<int>("Введите возраст", isValidAdultAge, convertToInt);
+    age = getValidatedInput<int>("Р’РІРµРґРёС‚Рµ РІРѕР·СЂР°СЃС‚", isValidAdultAge, convertToInt);
      
    
     while (true) {
-        exp = getValidatedInput<int>("Введите стаж вождения (в годах)", isValidInt, convertToInt);
-        if (age - exp >= 18) break;
-        std::cerr << "Стаж должен быть корректным(минимум: ваш возраст - 18)\n";
+        exp = getValidatedInput<int>("Р’РІРµРґРёС‚Рµ СЃС‚Р°Р¶ РІРѕР¶РґРµРЅРёСЏ (РІ РіРѕРґР°С…)", isValidInt, convertToInt);
+        if (age - exp >= 18) {
+             cout<< "РЎС‚Р°Р¶ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РєРѕСЂСЂРµРєС‚РЅС‹Рј(РјРёРЅРёРјСѓРј: РІР°С€ РІРѕР·СЂР°СЃС‚ - 18)\n";
+             break;
+            
+        }
+       
     }
             
     User user(username, password, age, exp);
     if (DataStorage::getInstance().addUser(user)) {
-        cout << "Пользователь успешно зарегистрирован!" << endl;
+        cout << "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓСЃРїРµС€РЅРѕ Р·Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅ!" << endl;
     }
     else {
-        cout << "Ошибка регистрации." << endl;
+        cout << "РћС€РёР±РєР° СЂРµРіРёСЃС‚СЂР°С†РёРё." << endl;
     }
 
     system("pause");
@@ -149,15 +164,15 @@ void App::loginUser() {
     cin.ignore();
     string username, password;
 
-    cout << "\n=== вход ===\n";
-    username = getValidatedInput<string>("Введите имя пользователя:", isValidString, convertToString);
+    cout << "\n=== РІС…РѕРґ ===\n";
+    username = getValidatedInput<string>("Р’РІРµРґРёС‚Рµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ:", isValidString, convertToString);
 
-    password = getValidatedInput<string>("Введите пароль:", isValidString, convertToString);
+    password = getValidatedInput<string>("Р’РІРµРґРёС‚Рµ РїР°СЂРѕР»СЊ:", isValidString, convertToString);
     
 
     User* user = DataStorage::getInstance().findUserByName(username);
     if (user == nullptr || !user->checkPassword(password)) {
-        cout << "Неверное имя пользователя или пароль." << endl;
+        cout << "РќРµРІРµСЂРЅРѕРµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РёР»Рё РїР°СЂРѕР»СЊ." << endl;
         system("pause");
         if (user)
             delete user;
@@ -165,7 +180,7 @@ void App::loginUser() {
     }
 
     if (user->isBlocked) {
-        cout << "Ваш аккаунт заблокирован." << endl;
+        cout << "Р’Р°С€ Р°РєРєР°СѓРЅС‚ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ." << endl;
         system("pause");
         delete user;
         return;
@@ -183,9 +198,9 @@ void App::loginUser() {
 void App::userMenu(User* user) {
     bool exitUser = false;
     while (!exitUser) {
-        const string userOptions[] = { "Посмотреть доступные автомобили", "арендовать автомобиль",
-                                      "выйти из системы" };
-        int choice = showMenu("Панель пользователя", userOptions, 3);
+        const string userOptions[] = { "РџРѕСЃРјРѕС‚СЂРµС‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ Р°РІС‚РѕРјРѕР±РёР»Рё", "Р°СЂРµРЅРґРѕРІР°С‚СЊ Р°РІС‚РѕРјРѕР±РёР»СЊ",
+                                      "РІС‹Р№С‚Рё РёР· СЃРёСЃС‚РµРјС‹" };
+        int choice = showMenu("РџР°РЅРµР»СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ", userOptions, 3);
         switch (choice) {
         case 0:
             displayAvailableCars(*user);
@@ -202,9 +217,9 @@ void App::userMenu(User* user) {
 void App::adminMenu(User* admin) {
     bool exitAdmin = false;
     while (!exitAdmin) {
-        const string adminOptions[] = { "Просмотр пользователей", "Блокировать/Разблокировать пользователя",
-                                       "Управление автомобилями", "выйти из системы" };
-        int choice = showMenu("Панель администратора", adminOptions, 4);
+        const string adminOptions[] = { "РџСЂРѕСЃРјРѕС‚СЂ РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№", "Р‘Р»РѕРєРёСЂРѕРІР°С‚СЊ/Р Р°Р·Р±Р»РѕРєРёСЂРѕРІР°С‚СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ",
+                                       "РЈРїСЂР°РІР»РµРЅРёРµ Р°РІС‚РѕРјРѕР±РёР»СЏРјРё", "РІС‹Р№С‚Рё РёР· СЃРёСЃС‚РµРјС‹" };
+        int choice = showMenu("РџР°РЅРµР»СЊ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°", adminOptions, 4);
         switch (choice) {
         case 0:
             viewUsers();
@@ -224,12 +239,12 @@ void App::adminMenu(User* admin) {
 }
 void App::addCar() {
     cin.ignore();
-    const string carTypes[] = { "Эконом", "Комфорт", "Бизнес", "Премиум" };
-    int typeChoice = showMenu("Выберите тип автомобиля для добавления", carTypes, 4);
+    const string carTypes[] = { "Р­РєРѕРЅРѕРј", "РљРѕРјС„РѕСЂС‚", "Р‘РёР·РЅРµСЃ", "РџСЂРµРјРёСѓРј" };
+    int typeChoice = showMenu("Р’С‹Р±РµСЂРёС‚Рµ С‚РёРї Р°РІС‚РѕРјРѕР±РёР»СЏ РґР»СЏ РґРѕР±Р°РІР»РµРЅРёСЏ", carTypes, 4);
     string model;
     double price;
-    model= getValidatedInput<string>("Введите модель автомобиля:", isValidString, convertToString);
-    price = getValidatedInput<int>("Ввести базовую цену :", isValidInt , convertToInt);
+    model= getValidatedInput<string>("Р’РІРµРґРёС‚Рµ РјРѕРґРµР»СЊ Р°РІС‚РѕРјРѕР±РёР»СЏ:", isValidString, convertToString);
+    price = getValidatedInput<int>("Р’РІРµСЃС‚Рё Р±Р°Р·РѕРІСѓСЋ С†РµРЅСѓ :", isValidInt , convertToInt);
     shared_ptr<Car> newCar;
     switch (typeChoice) {
     case 0:
@@ -246,13 +261,13 @@ void App::addCar() {
         break;
     }
     DataStorage::getInstance().addCar(newCar);
-    cout << "Автомобиль успешно добавлен!" << endl;
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cout << "РђРІС‚РѕРјРѕР±РёР»СЊ СѓСЃРїРµС€РЅРѕ РґРѕР±Р°РІР»РµРЅ!" << endl;
+    cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
     cin.get();
 }
 
 void App::viewCars() {
-    cout << "\n=== доступные автомобили ===\n";
+    cout << "\n=== РґРѕСЃС‚СѓРїРЅС‹Рµ Р°РІС‚РѕРјРѕР±РёР»Рё ===\n";
     vector<shared_ptr<Car>> cars = DataStorage::getInstance().getCars();
     int index = 0;
     for (auto& car : cars) {
@@ -260,16 +275,16 @@ void App::viewCars() {
         car->displayInfo();
         cout << dashesManip << "\n";
     }
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
     cin.get();
 }
 void App::removeCar() {
     viewCars();
     string model;
-    model = getValidatedInput<string>("Введите название модели автомобиля, который нужно удалить:", isValidString, convertToString);
+    model = getValidatedInput<string>("Р’РІРµРґРёС‚Рµ РЅР°Р·РІР°РЅРёРµ РјРѕРґРµР»Рё Р°РІС‚РѕРјРѕР±РёР»СЏ, РєРѕС‚РѕСЂС‹Р№ РЅСѓР¶РЅРѕ СѓРґР°Р»РёС‚СЊ:", isValidString, convertToString);
     DataStorage::getInstance().removeCar(model);
-    cout << "Автомобиль успешно удален (если модель существовала)." << endl;
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cout << "РђРІС‚РѕРјРѕР±РёР»СЊ СѓСЃРїРµС€РЅРѕ СѓРґР°Р»РµРЅ (РµСЃР»Рё РјРѕРґРµР»СЊ СЃСѓС‰РµСЃС‚РІРѕРІР°Р»Р°)." << endl;
+    cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
     cin.get();
 }
 void App::displayAvailableCars(const User& user) {
@@ -284,7 +299,7 @@ void App::displayAvailableCars(const User& user) {
         availableCars.push_back(car);
     }
     if (availableCars.empty()) {
-        cout << "Нет машин, которые бы отвечали критериям возраста/опыта."
+        cout << "РќРµС‚ РјР°С€РёРЅ, РєРѕС‚РѕСЂС‹Рµ Р±С‹ РѕС‚РІРµС‡Р°Р»Рё РєСЂРёС‚РµСЂРёСЏРј РІРѕР·СЂР°СЃС‚Р°/РѕРїС‹С‚Р°."
             << endl;
     }
     else {
@@ -292,28 +307,28 @@ void App::displayAvailableCars(const User& user) {
         for (auto& car : availableCars) {
             cout << idx++ << ". ";
             car->displayInfo();
-            cout << "Цена для вас: " << car->getPrice(user) << "\n";
+            cout << "Р¦РµРЅР° РґР»СЏ РІР°СЃ: " << car->getPrice(user) << "\n";
             cout << "---------------------\n";
         }
     }
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
     cin.get();
 }
 void App::rentCar(const User& user) {
-    cout << "\n=== арендовать машину ===\n";
+    cout << "\n=== Р°СЂРµРЅРґРѕРІР°С‚СЊ РјР°С€РёРЅСѓ ===\n";
     vector<shared_ptr<Car>> cars = DataStorage::getInstance().getCars();
     vector<shared_ptr<Car>> availableCars;
     for (auto& car : cars) {
         if (user.age < car->getMinAge())
             continue;
-        if (user.experience < 1.0 && car->getType() != "Эконом")
+        if (user.experience < 1.0 && car->getType() != "Р­РєРѕРЅРѕРј")
             continue;
         availableCars.push_back(car);
     }
     if (availableCars.empty()) {
-        cout << "Нет машин, которые бы отвечали критериям возраста/опыта."
+        cout << "РќРµС‚ РјР°С€РёРЅ, РєРѕС‚РѕСЂС‹Рµ Р±С‹ РѕС‚РІРµС‡Р°Р»Рё РєСЂРёС‚РµСЂРёСЏРј РІРѕР·СЂР°СЃС‚Р°/РѕРїС‹С‚Р°."
             << endl;
-        cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+        cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
         cin.get();
         return;
     }
@@ -321,60 +336,60 @@ void App::rentCar(const User& user) {
     for (auto& car : availableCars) {
         stringstream ss;
         ss << car->getType() << " - " << car->getModel()
-            << " - Цена: " << car->getPrice(user);
+            << " - Р¦РµРЅР°: " << car->getPrice(user);
         carOptions.push_back(ss.str());
     }
-    int choice = showMenu("Выбрать автомобиль для аренды", carOptions.data(),
+    int choice = showMenu("Р’С‹Р±СЂР°С‚СЊ Р°РІС‚РѕРјРѕР±РёР»СЊ РґР»СЏ Р°СЂРµРЅРґС‹", carOptions.data(),
         carOptions.size());
-    cout << "\nВы арендовали: " << availableCars[choice]->getType() << " - "
+    cout << "\nР’С‹ Р°СЂРµРЅРґРѕРІР°Р»Рё: " << availableCars[choice]->getType() << " - "
         << availableCars[choice]->getModel() << "\n";
-    cout << "Стоимость аренды: " << availableCars[choice]->getPrice(user)
+    cout << "РЎС‚РѕРёРјРѕСЃС‚СЊ Р°СЂРµРЅРґС‹: " << availableCars[choice]->getPrice(user)
         << "\n";
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
     cin.get();
 }
 void App::viewUsers() {
-    cout << "\n=== список пользователей===\n";
+    cout << "\n=== СЃРїРёСЃРѕРє РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№===\n";
     vector<User> users = DataStorage::getInstance().getUsers();
     for (auto& u : users) {
-        cout << "имя пользователя: " << u.username << " | возраст: " << u.age
-            << " | Стаж: " << u.experience << " лет"
-            << " | Заблокирован ли: " << (u.isBlocked ? "Да" : "Нет")
+        cout << "РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ: " << u.username << " | РІРѕР·СЂР°СЃС‚: " << u.age
+            << " | РЎС‚Р°Р¶: " << u.experience << " Р»РµС‚"
+            << " | Р—Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ Р»Рё: " << (u.isBlocked ? "Р”Р°" : "РќРµС‚")
             << (u.isAdmin ? " | Admin" : "") << endl;
     }
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
     cin.get();
 }
 void App::blockUnblockUser() {
     cin.ignore();
     string uname;
-    uname = getValidatedInput<string>("Введите имя пользователя для блокировки/ разблокировки:", isValidString, convertToString);
+    uname = getValidatedInput<string>("Р’РІРµРґРёС‚Рµ РёРјСЏ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ РґР»СЏ Р±Р»РѕРєРёСЂРѕРІРєРё/ СЂР°Р·Р±Р»РѕРєРёСЂРѕРІРєРё:", isValidString, convertToString);
     User* user = DataStorage::getInstance().findUserByName(uname);
     if (user == nullptr) {
-        cout << "Пользователь не найден." << endl;
+        cout << "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ РЅРµ РЅР°Р№РґРµРЅ." << endl;
         return;
     }
     if (user->isAdmin) {
-        cout << "Невозможно изменить учетную запись администратора." << endl;
+        cout << "РќРµРІРѕР·РјРѕР¶РЅРѕ РёР·РјРµРЅРёС‚СЊ СѓС‡РµС‚РЅСѓСЋ Р·Р°РїРёСЃСЊ Р°РґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂР°." << endl;
         delete user;
         return;
     }
     user->isBlocked = !user->isBlocked;
     DataStorage::getInstance().updateUser(*user);
-    cout << "Пользователь " << user->username
-        << (user->isBlocked ? " был заблокирован."
-            : " был разблокирован.")
+    cout << "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ " << user->username
+        << (user->isBlocked ? " Р±С‹Р» Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ."
+            : " Р±С‹Р» СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅ.")
         << endl;
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cout << "РќР°Р¶РјРёС‚Рµ Р»СЋР±СѓСЋ РєР»Р°РІРёС€Сѓ, С‡С‚РѕР±С‹ РїСЂРѕРґРѕР»Р¶РёС‚СЊ..." << endl;
     cin.get();
     delete user;
 }
 void App::manageCars() {
     bool exitCars = false;
     while (!exitCars) {
-        const string carOptions[] = { "Просмотр автомобилей", "Добавить автомобиль", "Удалить автомобиль",
-                                     "назад" };
-        int choice = showMenu("Панель изменения данных об авто", carOptions, 4);
+        const string carOptions[] = { "РџСЂРѕСЃРјРѕС‚СЂ Р°РІС‚РѕРјРѕР±РёР»РµР№", "Р”РѕР±Р°РІРёС‚СЊ Р°РІС‚РѕРјРѕР±РёР»СЊ", "РЈРґР°Р»РёС‚СЊ Р°РІС‚РѕРјРѕР±РёР»СЊ",
+                                     "РЅР°Р·Р°Рґ" };
+        int choice = showMenu("РџР°РЅРµР»СЊ РёР·РјРµРЅРµРЅРёСЏ РґР°РЅРЅС‹С… РѕР± Р°РІС‚Рѕ", carOptions, 4);
         switch (choice) {
         case 0:
             viewCars();
