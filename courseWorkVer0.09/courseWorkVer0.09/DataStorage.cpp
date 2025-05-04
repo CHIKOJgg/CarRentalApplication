@@ -32,6 +32,58 @@ void DataStorage::createTables() {
         std::cerr << "Ошибка SQL (Cars): " << errMsg << "\n";
         sqlite3_free(errMsg);
     }
+    const char* rentalTableSQL =
+        "CREATE TABLE IF NOT EXISTS Rentals ("
+        "ID INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "userID INTEGER NOT NULL, "
+        "carID INTEGER NOT NULL, "
+        "startDate TEXT NOT NULL, "
+        "endDate   TEXT NOT NULL, "
+        "FOREIGN KEY(userID) REFERENCES Users(ID), "
+        "FOREIGN KEY(carID)  REFERENCES Cars(ID)"
+        ");";
+    if (sqlite3_exec(db, rentalTableSQL, nullptr, nullptr, &errMsg) != SQLITE_OK) {
+        std::cerr << "Ошибка SQL (Rentals): " << errMsg << "\n";
+        sqlite3_free(errMsg);
+    }
+}
+bool DataStorage::addRental(int userID, int carID,
+    const std::string& startDate,
+    const std::string& endDate) {
+    const char* sql =
+        "INSERT INTO Rentals (userID,carID,startDate,endDate) VALUES (?, ?, ?, ?);";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Ошибка подготовки (addRental): " << sqlite3_errmsg(db) << "\n";
+        return false;
+    }
+    sqlite3_bind_int(stmt, 1, userID);
+    sqlite3_bind_int(stmt, 2, carID);
+    sqlite3_bind_text(stmt, 3, startDate.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, endDate.c_str(), -1, SQLITE_TRANSIENT);
+
+    bool ok = sqlite3_step(stmt) == SQLITE_DONE;
+    sqlite3_finalize(stmt);
+    return ok;
+}
+
+
+int DataStorage::getCarIDByModel(const std::string& model) {
+    const char* sql = "SELECT ID FROM Cars WHERE model = ? LIMIT 1;";
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Ошибка подготовки запроса getCarIDByModel: "
+            << sqlite3_errmsg(db) << "\n";
+        return -1;
+    }
+    sqlite3_bind_text(stmt, 1, model.c_str(), -1, SQLITE_TRANSIENT);
+
+    int carID = -1;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        carID = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+    return carID;
 }
 
 DataStorage& DataStorage::getInstance() {

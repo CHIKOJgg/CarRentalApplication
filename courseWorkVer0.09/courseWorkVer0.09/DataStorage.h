@@ -23,4 +23,8 @@ public:
     void addCar(const std::shared_ptr<Car>& car);
     std::vector<std::shared_ptr<Car>> getCars();
     void removeCar(const std::string& model);
+    bool addRental(int userID, int carID,
+        const std::string& startDate,
+        const std::string& endDate);
+    int getCarIDByModel(const std::string& model);
 };
