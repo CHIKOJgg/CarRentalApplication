@@ -335,40 +335,38 @@ void App::rentCar(const User& user) {
     }
     int choice = showMenu("Выберите автомобиль для аренды", options.data(), options.size());
 
-	string currentDate = getCurrentDate();
-	string startDate;
-	do {
-		cout << "Введите дату начала аренды (YYYY-MM-DD): ";
-		getline(cin, startDate);
-		if (!isValidDate(startDate)) {
-			cout << "Дата некорректна, попробуйте снова\n";
-		}if (isValidDate(startDate)) {
-            if (startDate < currentDate) {
-                cout << "Дата начала аренды не может быть в прошлом.\n";
-            }
-		}
-	} while (!isValidDate(startDate));
+    string currentDate = getCurrentDate();
+    string startDate;
+    bool validStart = false;
+    do {
+        cout << "\n\nВведите дату начала аренды (YYYY-MM-DD): ";
+        getline(cin, startDate);
+        if (!isValidDate(startDate)) {
+            cout << "Дата некорректна, попробуйте снова\n";
+        }
+        else if (startDate < currentDate) {
+            cout << "Дата начала аренды не может быть в прошлом.\n";
+        }
+        else {
+            validStart = true;
+        }
+    } while (!validStart);
 
-	string endDate;
-	do {
-		cout << "Введите дату окончания аренды (YYYY-MM-DD): ";
-		getline(cin, endDate);
-		if (!isValidDate(endDate)) {
-			cout << "Дата некорректна, попробуйте снова\n";
-		
-		}if (isValidDate(endDate)) {
-			cout << "Дата некорректна, попробуйте снова\n";
-            if (startDate > endDate) {
-                cout << "Дата начала аренды не может быть позже даты окончания.\n";
-              
-            }
-		}
-	} while (!isValidDate(endDate));
-
-   
-
-
-    
+    string endDate;
+    bool validEnd = false;
+    do {
+        cout << "\n\nВведите дату окончания аренды (YYYY-MM-DD): ";
+        getline(cin, endDate);
+        if (!isValidDate(endDate)) {
+            cout << "Дата некорректна, попробуйте снова\n";
+        }
+        else if (startDate > endDate) {
+            cout << "Дата начала аренды не может быть позже даты окончания.\n";
+        }
+        else {
+            validEnd = true;
+        }
+    } while (!validEnd);
 
     int userID = user.getId();
     int carID = DataStorage::getInstance()
