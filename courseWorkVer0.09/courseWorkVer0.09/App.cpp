@@ -12,76 +12,65 @@
 
 using namespace std;
 
-#include <windows.h>
-#include <conio.h>
-#include <iostream>
-#include "termcolor.hpp"
+int showMenu(const std::string& title, const std::string options[],
+    int optionCount) {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO originalCursorInfo;
+    GetConsoleCursorInfo(hConsole, &originalCursorInfo);
 
-#define GETCH() ([](){ int _c = _getch(); return _c; }())
-
-int showMenu(const std::string& title, const std::string options[], int optionCount) {
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    HANDLE hIn = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD oldMode;
-    GetConsoleMode(hIn, &oldMode);
-    SetConsoleMode(hIn, oldMode & ~(ENABLE_LINE_INPUT | ENABLE_ECHO_INPUT));
-
-   
-    CONSOLE_CURSOR_INFO ci;
-    GetConsoleCursorInfo(hOut, &ci);
-    ci.bVisible = FALSE;
-    SetConsoleCursorInfo(hOut, &ci);
-
-    
+    CONSOLE_CURSOR_INFO cursorInfo = originalCursorInfo;
+    cursorInfo.bVisible = false;
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
     system("cls");
-    FlushConsoleInputBuffer(hIn);
-
-   
     std::cout << title << std::endl;
-
+    while (_kbhit()) _getch();
     CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(hOut, &csbi);
-    SHORT menuY = csbi.dwCursorPosition.Y;
-
+    GetConsoleScreenBufferInfo(hConsole, &csbi);
+    SHORT menuStartY = csbi.dwCursorPosition.Y;
     for (int i = 0; i < optionCount; ++i) {
-        if (i == 0) std::cout << termcolor::red << "--> " << termcolor::reset;
-        else     std::cout << "    ";
-        std::cout << options[i] << "\n";
+        if (i == 0) {
+            std::cout << termcolor::red << "--> " << termcolor::reset;
+        }
+        else {
+            std::cout << "    ";
+        }
+        std::cout << options[i] << std::endl;
     }
 
-    int choice = 0, prev = -1;
-    int consoleW = csbi.dwSize.X;
 
-    
+
+    int choice = 0;
+    int previousChoice = 0;
+    GetConsoleScreenBufferInfo(hConsole, &csbi);
+    int consoleWidth = csbi.dwSize.X;
+    //  TODO paint console output
     while (true) {
-        if (choice != prev) {
-            
-            if (prev >= 0) {
-                SetConsoleCursorPosition(hOut, { 0, SHORT(menuY + prev) });
-                std::cout << std::string(consoleW, ' ')
-                    << "\r    " << options[prev];
-            }
-          
-            SetConsoleCursorPosition(hOut, { 0, SHORT(menuY + choice) });
-            std::cout << std::string(consoleW, ' ')
-                << "\r" << termcolor::red << "--> "
+        if (choice != previousChoice) {
+
+            SetConsoleCursorPosition(
+                hConsole, { 0, static_cast<SHORT>(menuStartY + previousChoice) });
+            std::cout << std::string(consoleWidth, ' ') << termcolor::grey << "\r    "
+                << termcolor::reset << options[previousChoice];
+
+            SetConsoleCursorPosition(
+                hConsole, { 0, static_cast<SHORT>(menuStartY + choice) });
+            std::cout << std::string(consoleWidth, ' ') << termcolor::red << "\r--> "
                 << termcolor::reset << options[choice];
-            prev = choice;
+
+            previousChoice = choice;
         }
 
-        int key = GETCH();
+        int key = _getch();
         if (key == 224) {
-            key = GETCH();
-            if (key == 72 && choice > 0)            choice--;
-            else if (key == 80 && choice < optionCount - 1) choice++;
+            key = _getch();
+            if (key == 72 && choice > 0)
+                choice--;
+            else if (key == 80 && choice < optionCount - 1)
+                choice++;
         }
-        else if (key == 13) {  // Enter
-           
-            FlushConsoleInputBuffer(hIn);
-            SetConsoleMode(hIn, oldMode);
-
-            ci.bVisible = TRUE;
-            SetConsoleCursorInfo(hOut, &ci);
+        else if (key == 13) { // Enter
+            SetConsoleCursorInfo(hConsole, &originalCursorInfo);
+            while (_kbhit()) _getch();
             return choice;
         }
     }
@@ -108,7 +97,7 @@ void App::run() {
     bool exitFlag = false;
     while (!exitFlag) {
         const string menu[] = { "Регистрация", "Вход", "Выход" };
-        int choice = showMenu("Система аренды автомобилей\nДля выбора пунта 2 раза нажмите Enter", menu, 3);
+        int choice = showMenu("Система аренды автомобилей", menu, 3);
         switch (choice) {
         case 0: registerUser(); break;
         case 1: loginUser(); break;
@@ -125,7 +114,7 @@ void App::registerUser() {
     int exp = -1;
 
     cout << "\n=== Регистрация ===\n";
-  
+
     username = getValidatedInput<string>("Введите имя пользователя:", isValidString, convertToString);
 
     if (DataStorage::getInstance().findUserByName(username)) {
@@ -133,27 +122,24 @@ void App::registerUser() {
         system("pause");
         return;
     }
-    password = getValidatedInput<string>("Введите пароль (минимум 6 символов обязательно должна присутствовать буква и цифра):", isValidPassword, convertToString);
-    
+    password = getValidatedInput<string>("Введите пароль (минимум 6 символов):", isValidPassword, convertToString);
+
     age = getValidatedInput<int>("Введите возраст", isValidAdultAge, convertToInt);
-     
-   
+
+
     while (true) {
         exp = getValidatedInput<int>("Введите стаж вождения (в годах)", isValidInt, convertToInt);
-        if (age - exp >= 18) {
-             cout<< "Стаж должен быть корректным(минимум: ваш возраст - 18)\n";
-             break;
-            
-        }
-       
+        if (age - exp >= 18) break;
+        std::cerr << "Стаж должен быть корректным(минимум: ваш возраст - 18)\n";
     }
-            
+
     User user(username, password, age, exp);
     if (DataStorage::getInstance().addUser(user)) {
         cout << "Пользователь успешно зарегистрирован!" << endl;
+
     }
     else {
-        cout << "Ошибка регистрации." << endl;
+        cout << "Ошибка регистрации. Соединение с базой данных разорвано" << endl;
     }
 
     system("pause");
@@ -168,7 +154,7 @@ void App::loginUser() {
     username = getValidatedInput<string>("Введите имя пользователя:", isValidString, convertToString);
 
     password = getValidatedInput<string>("Введите пароль:", isValidString, convertToString);
-    
+
 
     User* user = DataStorage::getInstance().findUserByName(username);
     if (user == nullptr || !user->checkPassword(password)) {
@@ -243,8 +229,8 @@ void App::addCar() {
     int typeChoice = showMenu("Выберите тип автомобиля для добавления", carTypes, 4);
     string model;
     double price;
-    model= getValidatedInput<string>("Введите модель автомобиля:", isValidString, convertToString);
-    price = getValidatedInput<int>("Ввести базовую цену :", isValidInt , convertToInt);
+    model = getValidatedInput<string>("Введите модель автомобиля:", isValidString, convertToString);
+    price = getValidatedInput<int>("Ввести базовую цену :", isValidInt, convertToInt);
     shared_ptr<Car> newCar;
     switch (typeChoice) {
     case 0:
@@ -267,7 +253,7 @@ void App::addCar() {
 }
 
 void App::viewCars() {
-    cout << "\n=== доступные автомобили ===\n";
+    cout << "\n=== Доступные автомобили ===\n";
     vector<shared_ptr<Car>> cars = DataStorage::getInstance().getCars();
     int index = 0;
     for (auto& car : cars) {
@@ -288,7 +274,7 @@ void App::removeCar() {
     cin.get();
 }
 void App::displayAvailableCars(const User& user) {
-    cout << "\n=== Available Cars for You ===\n";
+    cout << "\n=== Доступные для вас машины ===\n";
     vector<shared_ptr<Car>> cars = DataStorage::getInstance().getCars();
     vector<shared_ptr<Car>> availableCars;
     for (auto& car : cars) {
@@ -363,14 +349,16 @@ void App::viewUsers() {
 void App::blockUnblockUser() {
     cin.ignore();
     string uname;
-    uname = getValidatedInput<string>("Введите имя пользователя для блокировки/ разблокировки:", isValidString, convertToString);
+    uname = getValidatedInput<string>("\n\nВведите имя пользователя для блокировки/разблокировки:", isValidString, convertToString);
     User* user = DataStorage::getInstance().findUserByName(uname);
     if (user == nullptr) {
         cout << "Пользователь не найден." << endl;
+        system("pause");
         return;
     }
     if (user->isAdmin) {
         cout << "Невозможно изменить учетную запись администратора." << endl;
+        system("pause");
         delete user;
         return;
     }
