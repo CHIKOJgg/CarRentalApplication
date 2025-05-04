@@ -1,4 +1,5 @@
-﻿#include "App.h"
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include "App.h"
 #include "DataStorage.h"
 #include "Utilities.h"
 #include "InputChecker.h"
@@ -8,6 +9,7 @@
 #include <windows.h>
 #include <sstream>
 #include"input_val.h"
+
 
 
 using namespace std;
@@ -300,40 +302,92 @@ void App::displayAvailableCars(const User& user) {
     cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
     cin.get();
 }
+
+string getCurrentDate() {
+    time_t now = time(nullptr);
+    tm* tm = localtime(&now);
+    stringstream ss;
+    ss << put_time(tm, "%Y-%m-%d");
+    return ss.str();
+}
 void App::rentCar(const User& user) {
-    cout << "\n=== арендовать машину ===\n";
-    vector<shared_ptr<Car>> cars = DataStorage::getInstance().getCars();
-    vector<shared_ptr<Car>> availableCars;
-    for (auto& car : cars) {
-        if (user.age < car->getMinAge())
-            continue;
-        if (user.experience < 1.0 && car->getType() != "Эконом")
-            continue;
-        availableCars.push_back(car);
+    cout << "\n=== Аренда автомобиля ===\n";
+
+    auto allCars = DataStorage::getInstance().getCars();
+    vector<shared_ptr<Car>> available;
+    for (auto& car : allCars) {
+        if (user.age < car->getMinAge()) continue;
+        if (user.experience < 1.0 && car->getType() != "Эконом") continue;
+        available.push_back(car);
     }
-    if (availableCars.empty()) {
-        cout << "Нет машин, которые бы отвечали критериям возраста/опыта."
-            << endl;
-        cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    if (available.empty()) {
+        cout << "Нет машин, подходящих под ваши параметры.\n";
+        cout << "Нажмите любую клавишу, чтобы вернуться...\n";
         cin.get();
         return;
     }
-    vector<string> carOptions;
-    for (auto& car : availableCars) {
+    vector<string> options;
+    for (auto& car : available) {
         stringstream ss;
         ss << car->getType() << " - " << car->getModel()
             << " - Цена: " << car->getPrice(user);
-        carOptions.push_back(ss.str());
+        options.push_back(ss.str());
     }
-    int choice = showMenu("Выбрать автомобиль для аренды", carOptions.data(),
-        carOptions.size());
-    cout << "\nВы арендовали: " << availableCars[choice]->getType() << " - "
-        << availableCars[choice]->getModel() << "\n";
-    cout << "Стоимость аренды: " << availableCars[choice]->getPrice(user)
-        << "\n";
-    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    int choice = showMenu("Выберите автомобиль для аренды", options.data(), options.size());
+
+    string currentDate = getCurrentDate();
+    string startDate;
+    bool validStart = false;
+    do {
+        cout << "\n\nВведите дату начала аренды (YYYY-MM-DD): ";
+        getline(cin, startDate);
+        if (!isValidDate(startDate)) {
+            cout << "Дата некорректна, попробуйте снова\n";
+        }
+        else if (startDate < currentDate) {
+            cout << "Дата начала аренды не может быть в прошлом.\n";
+        }
+        else {
+            validStart = true;
+        }
+    } while (!validStart);
+
+    string endDate;
+    bool validEnd = false;
+    do {
+        cout << "\n\nВведите дату окончания аренды (YYYY-MM-DD): ";
+        getline(cin, endDate);
+        if (!isValidDate(endDate)) {
+            cout << "Дата некорректна, попробуйте снова\n";
+        }
+        else if (startDate > endDate) {
+            cout << "Дата начала аренды не может быть позже даты окончания.\n";
+        }
+        else {
+            validEnd = true;
+        }
+    } while (!validEnd);
+
+    int userID = user.getId();
+    int carID = DataStorage::getInstance()
+        .getCarIDByModel(available[choice]->getModel());
+    bool saved = DataStorage::getInstance().addRental(userID, carID, startDate, endDate);
+
+    if (saved) {
+        cout << "Аренда сохранена: " << startDate << " — " << endDate << "\n";
+    }
+    else {
+        cout << "Ошибка при сохранении аренды.\n";
+    }
+
+    cout << "\nВы арендовали: "
+        << available[choice]->getType() << " - "
+        << available[choice]->getModel() << "\n"
+        << "Стоимость аренды: " << available[choice]->getPrice(user) << "\n";
+    cout << "Нажмите любую клавишу, чтобы продолжить...\n";
     cin.get();
 }
+
 void App::viewUsers() {
     cout << "\n=== список пользователей===\n";
     vector<User> users = DataStorage::getInstance().getUsers();
