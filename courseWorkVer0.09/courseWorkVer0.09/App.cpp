@@ -187,7 +187,7 @@ void App::userMenu(User* user) {
     bool exitUser = false;
     while (!exitUser) {
         const string userOptions[] = { "Посмотреть доступные автомобили", "арендовать автомобиль",
-                                      "выйти из системы" };
+                                      "выйти из системы"};
         int choice = showMenu("Панель пользователя", userOptions, 3);
         switch (choice) {
         case 0:
@@ -206,8 +206,8 @@ void App::adminMenu(User* admin) {
     bool exitAdmin = false;
     while (!exitAdmin) {
         const string adminOptions[] = { "Просмотр пользователей", "Блокировать/Разблокировать пользователя",
-                                       "Управление автомобилями", "выйти из системы" };
-        int choice = showMenu("Панель администратора", adminOptions, 4);
+                                       "Управление автомобилями","Отфильтровать пользователей по возрасту", "Отфильтровать пользователей по стажу","отсортировать пользоватеелй в алфавитном порядке", "выйти из системы"};
+        int choice = showMenu("Панель администратора", adminOptions, 7);
         switch (choice) {
         case 0:
             viewUsers();
@@ -219,6 +219,15 @@ void App::adminMenu(User* admin) {
             manageCars();
             break;
         case 3:
+           filterByAge();
+            break;
+        case 4:
+           filterByExperience();
+            break;
+        case 5:
+           filterByExperience();
+            break;
+        case 6:
             exitAdmin = true;
             break;
 
@@ -253,7 +262,7 @@ void App::addCar() {
     cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
     cin.get();
 }
-
+ 
 void App::viewCars() {
     cout << "\n=== Доступные автомобили ===\n";
     vector<shared_ptr<Car>> cars = DataStorage::getInstance().getCars();
@@ -396,6 +405,62 @@ void App::viewUsers() {
             << " | Стаж: " << u.experience << " лет"
             << " | Заблокирован ли: " << (u.isBlocked ? "Да" : "Нет")
             << (u.isAdmin ? " | Admin" : "") << endl;
+    }
+    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cin.get();
+}
+void App::filterByAge() {
+    int filterAge = getValidatedInput<int>("введите возраст", isValidInt, convertToInt);
+    cout << "\n=== список пользователей===\n";
+    vector<User> users = DataStorage::getInstance().getUsers();
+    for (auto& u : users) {
+        if (u.age>=filterAge)
+        {
+            cout << "имя пользователя: " << u.username << " | возраст: " << u.age
+            << " | Стаж: " << u.experience << " лет"
+            << " | Заблокирован ли: " << (u.isBlocked ? "Да" : "Нет")
+            << (u.isAdmin ? " | Admin" : "") << endl;
+        } {
+           // cout << "пользователей с старше указанного возраста нет";
+        }
+        
+    }
+    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cin.get();
+
+
+}void App::sortInAlphabetOrder() {
+    cout << "\n=== список пользователей в алфавитном порядке===\n";
+    vector<User> users = DataStorage::getInstance().getUsers();
+
+    for (auto& u : users) {
+    
+            cout << "имя пользователя: " << u.username << " | возраст: " << u.age
+            << " | Стаж: " << u.experience << " лет"
+            << " | Заблокирован ли: " << (u.isBlocked ? "Да" : "Нет")
+            << (u.isAdmin ? " | Admin" : "") << endl;
+        
+        
+    }
+    cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
+    cin.get();
+
+
+}void App::filterByExperience() {
+    int filterExp = getValidatedInput<int>("\nвведите cnf;:", isValidInt, convertToInt);
+    cout << "\n=== список пользователей===\n";
+    vector<User> users = DataStorage::getInstance().getUsers();
+    for (auto& u : users) {
+        if (u.experience >= filterExp)
+        {
+            cout << "имя пользователя: " << u.username << " | возраст: " << u.age
+                << " | Стаж: " << u.experience << " лет"
+                << " | Заблокирован ли: " << (u.isBlocked ? "Да" : "Нет")
+                << (u.isAdmin ? " | Admin" : "") << endl;
+        } {
+            //cout << " нет пользователей со стажем больше указанного";
+        }
+
     }
     cout << "Нажмите любую клавишу, чтобы продолжить..." << endl;
     cin.get();

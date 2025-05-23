@@ -17,6 +17,9 @@ private:
     void deleteUser(); // если реализуешь
     void adminMenu(User* admin);
     void viewUsers();
+    void filterByExperience();
+    void filterByAge();
+    void sortInAlphabetOrder();
     void blockUnblockUser();
     void manageCars();
     void viewCars();
