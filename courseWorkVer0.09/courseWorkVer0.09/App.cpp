@@ -9,7 +9,7 @@
 #include <windows.h>
 #include <sstream>
 #include"input_val.h"
-
+#include <algorithm>
 
 
 using namespace std;
@@ -225,7 +225,7 @@ void App::adminMenu(User* admin) {
            filterByExperience();
             break;
         case 5:
-           filterByExperience();
+            sortInAlphabetOrder();
             break;
         case 6:
             exitAdmin = true;
@@ -430,10 +430,14 @@ void App::filterByAge() {
 
 
 }void App::sortInAlphabetOrder() {
-    cout << "\n=== список пользователей в алфавитном порядке===\n";
+   
     vector<User> users = DataStorage::getInstance().getUsers();
+    sort(users.begin(), users.end(), [](const User& a, const User& b) {
+        return a.username < b.username;
+        });
 
-    for (auto& u : users) {
+    cout << endl;
+    for (const auto& u : users) {
     
             cout << "имя пользователя: " << u.username << " | возраст: " << u.age
             << " | Стаж: " << u.experience << " лет"
