@@ -304,7 +304,9 @@ void App::displayAvailableCars(const User& user) {
         for (auto& car : availableCars) {
             cout << idx++ << ". ";
             car->displayInfo();
-            cout << "Цена для вас: " << car->getPrice(user) << "\n";
+            cout << "Цена за день: " << car->getBasePrice() << "\n";
+            cout << "Пример за 3 дня: "
+            << calculateTotalPrice(car->getType(), car->getBasePrice(), 3) << "\n";
             cout << "---------------------\n";
         }
     }
@@ -344,6 +346,8 @@ void App::rentCar(const User& user) {
     }
     int choice = showMenu("Выберите автомобиль для аренды", options.data(), options.size());
 
+
+
     string currentDate = getCurrentDate();
     string startDate;
     bool validStart = false;
@@ -376,12 +380,19 @@ void App::rentCar(const User& user) {
             validEnd = true;
         }
     } while (!validEnd);
-
+    int days = calculateDays(startDate, endDate);
+    if (days < 1) {
+        cout << "Минимальный срок аренды - 1 день!\n";
+        system("pause");
+        return;
+    }
     int userID = user.getId();
     int carID = DataStorage::getInstance()
         .getCarIDByModel(available[choice]->getModel());
     bool saved = DataStorage::getInstance().addRental(userID, carID, startDate, endDate);
-
+    double basePrice = available[choice]->getBasePrice();
+    string carType = available[choice]->getType();
+    double totalPrice = calculateTotalPrice(carType, basePrice, days);
     if (saved) {
         cout << "Аренда сохранена: " << startDate << " — " << endDate << "\n";
     }
@@ -392,9 +403,23 @@ void App::rentCar(const User& user) {
     cout << "\nВы арендовали: "
         << available[choice]->getType() << " - "
         << available[choice]->getModel() << "\n"
-        << "Стоимость аренды: " << available[choice]->getPrice(user) << "\n";
+        << "Стоимость аренды: " << totalPrice
+        << " (" << days << " дней, "
+        << "базовая цена: " << basePrice << "/день)\n";
     cout << "Нажмите любую клавишу, чтобы продолжить...\n";
     cin.get();
+}
+
+int App::calculateDays(const std::string& start, const std::string& end) const {
+    std::tm startTm = {}, endTm = {};
+    std::istringstream ssStart(start), ssEnd(end);
+    ssStart >> std::get_time(&startTm, "%Y-%m-%d");
+    ssEnd >> std::get_time(&endTm, "%Y-%m-%d");
+
+    std::time_t startTime = std::mktime(&startTm);
+    std::time_t endTime = std::mktime(&endTm);
+
+    return static_cast<int>(std::difftime(endTime, startTime) / (60 * 60 * 24));
 }
 
 void App::viewUsers() {
@@ -450,7 +475,40 @@ void App::filterByAge() {
     cin.get();
 
 
-}void App::filterByExperience() {
+}
+
+double App::calculateTotalPrice(const string& carType, double basePrice, int days)const{
+    if (days <= 0) {
+        return 0.0;
+       }
+
+    double multiplier =  1.0;
+    if (carType ==  "Эконом")
+    {
+        if (days > 14) multiplier = 0.75;    // 25
+        else if (days > 7) multiplier = 0.85;// 15
+        else if (days > 3) multiplier = 0.90;//
+    }
+    else if (carType == "Комфорт")
+    {
+        if (days > 14) multiplier = 0.80;
+        else if (days > 7) multiplier = 0.90;
+    }
+    else if (carType == "Бизнес")
+    {
+        if (days > 30) multiplier = 0.70;
+        else if (days > 14) multiplier = 0.85;
+    }
+    else if (carType == "Премиум")
+    {
+        multiplier = 1.0 - (0.01 * days); // 1% скидка за каждый день
+        if (multiplier < 0.7) multiplier = 0.7; // Максимум 30% скидки
+
+    }
+    return basePrice * days * multiplier;
+}
+
+void App::filterByExperience() {
     int filterExp = getValidatedInput<int>("\nвведите cnf;:", isValidInt, convertToInt);
     cout << "\n=== список пользователей===\n";
     vector<User> users = DataStorage::getInstance().getUsers();

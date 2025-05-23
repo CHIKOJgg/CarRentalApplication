@@ -28,4 +28,6 @@ private:
     void userMenu(User* user);
     void displayAvailableCars(const User& user);
     void rentCar(const User& user);
+    int calculateDays(const std::string& start, const std::string& end) const;
+    double calculateTotalPrice(const std::string& carType, double basePrice, int days) const;
 };
