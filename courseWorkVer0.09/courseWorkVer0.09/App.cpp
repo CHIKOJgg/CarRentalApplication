@@ -286,6 +286,7 @@ void App::removeCar() {
 }
 void App::displayAvailableCars(const User& user) {
     cout << "\n=== Доступные для вас машины ===\n";
+
     vector<shared_ptr<Car>> cars = DataStorage::getInstance().getCars();
     vector<shared_ptr<Car>> availableCars;
     for (auto& car : cars) {
@@ -346,7 +347,10 @@ void App::rentCar(const User& user) {
     }
     int choice = showMenu("Выберите автомобиль для аренды", options.data(), options.size());
 
-
+    cout << "\nСкидки при аренде:\n";
+    cout << " - 3-7 дней: 5%\n";
+    cout << " - 8-14 дней: 10%\n";
+    cout << " - 15+ дней: 15%";
 
     string currentDate = getCurrentDate();
     string startDate;
