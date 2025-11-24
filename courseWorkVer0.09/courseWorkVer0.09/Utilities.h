@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-
+//ютилки
 std::ostream& dashesManip(std::ostream& os);
 std::ostream& equalsignManip(std::ostream& os);
 std::string hashPassword(const std::string& password);

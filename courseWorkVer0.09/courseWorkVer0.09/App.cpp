@@ -448,7 +448,7 @@ void App::filterByAge() {
             << " | Заблокирован ли: " << (u.isBlocked ? "Да" : "Нет")
             << (u.isAdmin ? " | Admin" : "") << endl;
         } {
-           // cout << "пользователей с старше указанного возраста нет";
+     
         }
         
     }
@@ -487,9 +487,9 @@ double App::calculateTotalPrice(const string& carType, double basePrice, int day
     double multiplier =  1.0;
     if (carType ==  "Эконом")
     {
-        if (days > 14) multiplier = 0.75;    // 25
-        else if (days > 7) multiplier = 0.85;// 15
-        else if (days > 3) multiplier = 0.90;//
+        if (days > 14) multiplier = 0.75;    
+        else if (days > 7) multiplier = 0.85;
+        else if (days > 3) multiplier = 0.90;
     }
     else if (carType == "Комфорт")
     {
@@ -503,8 +503,8 @@ double App::calculateTotalPrice(const string& carType, double basePrice, int day
     }
     else if (carType == "Премиум")
     {
-        multiplier = 1.0 - (0.01 * days); // 1% скидка за каждый день
-        if (multiplier < 0.7) multiplier = 0.7; // Максимум 30% скидки
+        multiplier = 1.0 - (0.01 * days); 
+        if (multiplier < 0.7) multiplier = 0.7; 
 
     }
     return basePrice * days * multiplier;
@@ -522,7 +522,7 @@ void App::filterByExperience() {
                 << " | Заблокирован ли: " << (u.isBlocked ? "Да" : "Нет")
                 << (u.isAdmin ? " | Admin" : "") << endl;
         } {
-            //cout << " нет пользователей со стажем больше указанного";
+            
         }
 
     }

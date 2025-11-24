@@ -26,14 +26,14 @@ using std::string;
 #include <locale>
 #include <iostream>
 
-// username
+
 inline bool isValidUsername(const string& input) {
     if (input.empty()) return false;
     if (input.find(' ') != string::npos) return false;
     return true;
 }
 
-// char (1 символ)
+
 inline bool isValidChar(const string& input) {
     if (input.length() != 1) return false;
     char c = input[0];
@@ -41,7 +41,7 @@ inline bool isValidChar(const string& input) {
     return true;
 }
 
-//  int
+
 inline bool isValidInt(const string& input) {
     if (input.empty()) return false;
     size_t start = 0;
@@ -53,7 +53,7 @@ inline bool isValidInt(const string& input) {
 }
 
 
-//  double
+
 inline bool isValidDouble(const string& input) {
     if (input.empty()) return false;
     size_t start = 0; int dots = 0; bool hasDigits = false;
@@ -69,14 +69,14 @@ inline bool isValidDouble(const string& input) {
     return true;
 }
 
-// string
+
 inline bool isValidString(const string& input) {
     if (input.empty()) return false;
     for (char c : input) if (!isspace(c)) return true;
     return false;
 }
 
-// email
+
 inline bool isValidEmail(const string& input) {
     if (input.empty()) return false;
     const regex pattern(R"((^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$))");
@@ -100,12 +100,11 @@ inline bool isValidAdultAge(const std::string& input) {
     return age > 18;
 }
 
-// bool 
 inline bool isValidBool(const string& input) {
     return input == "true" || input == "false";
 }
 
-// password
+
 inline bool isValidPassword(const string& input) {
     if (input.length() < 6) return false;
     bool d = false, l = false;
@@ -113,7 +112,7 @@ inline bool isValidPassword(const string& input) {
     return d && l;
 }
 
-// Template
+
 template<typename T>
 T getValidatedInput(const string& prompt, bool(*validator)(const string&), T(*converter)(const string&)) {
     string in;
@@ -129,11 +128,11 @@ T getValidatedInput(const string& prompt, bool(*validator)(const string&), T(*co
     }
 }
 
-// Converts
+
 inline int convertToInt(const string& s) { return stoi(s); }
 inline double convertToDouble(const string& s) { return stod(s); }
 inline string convertToString(const string& s) { return s; }
 inline char convertToChar(const string& s) { return s[0]; }
 inline bool convertToBool(const string& s) { return s == "true"; }
 
-#endif // INPUT_VALIDATION_H
+#endif 

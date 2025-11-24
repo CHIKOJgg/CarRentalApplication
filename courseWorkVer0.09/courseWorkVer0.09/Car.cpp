@@ -13,7 +13,7 @@ void Car::displayInfo() const {
     std::cout << "Тип: " << getType()
         << "\nМодель: " << model
         << "\nБазовая цена: " << basePrice
-        << "\nМин. возраст: " << minAge << "\n";
+        << "\nМин.возраст: " << minAge << "\n";
 }
 int Car::getMinAge() const { return minAge; }
 std::string Car::getModel() const { return model; }

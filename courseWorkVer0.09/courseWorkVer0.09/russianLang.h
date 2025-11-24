@@ -6,7 +6,7 @@
 #include <clocale>
 #include <locale>
 #include <iostream>
-
+//Подарок от Канаша
 
 void setupRussLocale() {
 #if defined(_WIN32)

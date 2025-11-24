@@ -54,7 +54,7 @@ bool DataStorage::addRental(int userID, int carID,
         "INSERT INTO Rentals (userID,carID,startDate,endDate) VALUES (?, ?, ?, ?);";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        std::cerr << "Ошибка подготовки (addRental): " << sqlite3_errmsg(db) << "\n";
+        std::cerr << "Ошибка подготовки: " << sqlite3_errmsg(db) << "\n";
         return false;
     }
     sqlite3_bind_int(stmt, 1, userID);

@@ -130,7 +130,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="InputChecker.cpp" />
     <ClCompile Include="Utilities.cpp" />
     <ClCompile Include="User.cpp" />
     <ClCompile Include="Car.cpp" />
@@ -140,7 +139,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
-    <ClInclude Include="InputChecker.h" />
     <ClInclude Include="input_val.h" />
     <ClInclude Include="russianLang.h" />
     <ClInclude Include="SQlite\sqlite3.h" />

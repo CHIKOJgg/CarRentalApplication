@@ -5,7 +5,7 @@
 //! termcolor is a header-only c++ library for printing colored messages
 //! to the terminal. Written just for fun with a help of the Force.
 //!
-//! :copyright: (c) 2013 by Ihor Kalnytskyi
+//! :copyright: (c) 2013 by Ihor Kalnytsky
 //! :license: BSD, see LICENSE for details
 //!
 
