@@ -45,7 +45,7 @@ int showMenu(const std::string& title, const std::string options[],
     int previousChoice = 0;
     GetConsoleScreenBufferInfo(hConsole, &csbi);
     int consoleWidth = csbi.dwSize.X;
-    //  TODO paint console output
+    
     while (true) {
         if (choice != previousChoice) {
 
@@ -70,7 +70,7 @@ int showMenu(const std::string& title, const std::string options[],
             else if (key == 80 && choice < optionCount - 1)
                 choice++;
         }
-        else if (key == 13) { // Enter
+        else if (key == 13) { 
             SetConsoleCursorInfo(hConsole, &originalCursorInfo);
             while (_kbhit()) _getch();
             return choice;
@@ -124,7 +124,7 @@ void App::registerUser() {
         system("pause");
         return;
     }
-    password = getValidatedInput<string>("Введите пароль (минимум 6 символов):", isValidPassword, convertToString);
+    password = getValidatedInput<string>("Введите пароль обязательно 1 буква латинского алфавита (минимум 6 символов):  ", isValidPassword, convertToString);
 
     age = getValidatedInput<int>("Введите возраст", isValidAdultAge, convertToInt);
 
@@ -240,8 +240,8 @@ void App::addCar() {
     int typeChoice = showMenu("Выберите тип автомобиля для добавления", carTypes, 4);
     string model;
     double price;
-    model = getValidatedInput<string>("Введите модель автомобиля:", isValidString, convertToString);
-    price = getValidatedInput<int>("Ввести базовую цену :", isValidInt, convertToInt);
+    model = getValidatedInput<string>("  Введите модель автомобиля:", isValidString, convertToString);
+    price = getValidatedInput<int>("  Ввести базовую цену :", isValidInt, convertToInt);
     shared_ptr<Car> newCar;
     switch (typeChoice) {
     case 0:
@@ -306,8 +306,6 @@ void App::displayAvailableCars(const User& user) {
             cout << idx++ << ". ";
             car->displayInfo();
             cout << "Цена за день: " << car->getBasePrice() << "\n";
-            cout << "Пример за 3 дня: "
-            << calculateTotalPrice(car->getType(), car->getBasePrice(), 3) << "\n";
             cout << "---------------------\n";
         }
     }
@@ -439,7 +437,7 @@ void App::viewUsers() {
     cin.get();
 }
 void App::filterByAge() {
-    int filterAge = getValidatedInput<int>("введите возраст", isValidInt, convertToInt);
+    int filterAge = getValidatedInput<int>("\n\n\n\nвведите возраст", isValidInt, convertToInt);
     cout << "\n=== список пользователей===\n";
     vector<User> users = DataStorage::getInstance().getUsers();
     for (auto& u : users) {
@@ -513,7 +511,7 @@ double App::calculateTotalPrice(const string& carType, double basePrice, int day
 }
 
 void App::filterByExperience() {
-    int filterExp = getValidatedInput<int>("\nвведите cnf;:", isValidInt, convertToInt);
+    int filterExp = getValidatedInput<int>("\n\n\nвведите стаж", isValidInt, convertToInt);
     cout << "\n=== список пользователей===\n";
     vector<User> users = DataStorage::getInstance().getUsers();
     for (auto& u : users) {
@@ -534,7 +532,7 @@ void App::filterByExperience() {
 void App::blockUnblockUser() {
     cin.ignore();
     string uname;
-    uname = getValidatedInput<string>("\n\nВведите имя пользователя для блокировки/разблокировки:", isValidString, convertToString);
+    uname = getValidatedInput<string>("\n\n\n\n\nВведите имя пользователя для блокировки/разблокировки:", isValidString, convertToString);
     User* user = DataStorage::getInstance().findUserByName(uname);
     if (user == nullptr) {
         cout << "Пользователь не найден." << endl;

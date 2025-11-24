@@ -4,12 +4,11 @@
 User::User()
     : id(-1), age(0), experience(0.0), rating(0), isBlocked(false), isAdmin(false) {}
 
-// Делегирующий конструктор: старые вызовы User("admin",...) перенаправятся сюда
+
 User::User(const std::string& uname, const std::string& pass, int age, double exp,
     int rating, bool blocked, bool isAdmin)
     : User(-1, uname, pass, age, exp, rating, blocked, isAdmin) {}
 
-// Новый конструктор, принимающий id
 User::User(int id, const std::string& uname, const std::string& pass, int age, double exp,
     int rating, bool blocked, bool isAdmin)
     : id(id),

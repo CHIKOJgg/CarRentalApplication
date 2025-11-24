@@ -14,7 +14,7 @@ public:
 private:
     void registerUser();
     void loginUser();
-    void deleteUser(); // если реализуешь
+    void deleteUser();
     void adminMenu(User* admin);
     void viewUsers();
     void filterByExperience();
